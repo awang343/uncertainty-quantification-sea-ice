@@ -13,6 +13,8 @@ from icedrift import interpolation
 import xarray as xr
 import pyproj
 
+import csv
+
 dataloc = '../data/adc_dn_tracks/'
 
 # There were two main deployments, one north of the Laptev Sea,
@@ -49,8 +51,9 @@ def get_frequency(buoy_df):
     # Check if representative of weekly data
     fmax = int(np.round(dt.resample('7D').median().max().total_seconds()/60, 0))
     fmin = int(np.round(dt.resample('7D').median().min().total_seconds()/60, 0))
-    if (np.abs(f - fmax) > 0) | (np.abs(f - fmin) > 0):
-        print('Warning: buoy has varying frequency. fmin=', fmin, 'fmax=', fmax, 'f=', f)
+    
+    #if (np.abs(f - fmax) > 0) | (np.abs(f - fmin) > 0):
+    #    print('Warning: buoy has varying frequency. fmin=', fmin, 'fmax=', fmax, 'f=', f)
         
     if f <= 30:
         interp_freq = '30min'
@@ -62,7 +65,14 @@ def get_frequency(buoy_df):
 
     return interp_freq
 
-for file in files:
+if len(sys.argv) == 2 and sys.argv[1].isnumeric():
+    count = int(sys.argv[1])
+else:
+    count = len(files)
+
+fields = ['sensor_id', 'freq']
+freqs = []
+for file in files[:count]:
     buoy = file.split('_')[-1].replace('.csv', '')
     df = pd.read_csv(dataloc + file, index_col='datetime', parse_dates=True)
 
@@ -70,7 +80,7 @@ for file in files:
     # This is also an example of user error affecting a small set of buoys.
     # All the other buoys are set to UTC, which is how they should be.
     if 'V' in buoy:
-        df.index = df.index - pd.to_timedelta('8H')
+        df.index = df.index - pd.to_timedelta('8h')
 
     # Apply correction to longitude issue for 3 V buoys
     # This issue appears if the programmer forgets to set the data
@@ -92,7 +102,7 @@ for file in files:
     # the QC steps
     df_qc = cleaning.standard_qc(df,
                         min_size=100,
-                        gap_threshold='6H',                
+                        gap_threshold='6h',                
                         segment_length=24,
                         lon_range=(-180, 180),
                         lat_range=(50, 90),
@@ -107,16 +117,25 @@ for file in files:
             df.to_csv(saveloc_dn2 + buoy + '.csv')
         else:
             df.to_csv(saveloc_dn1 + buoy + '.csv')
-            
+
         freq = get_frequency(df)
-        print(buoy, freq)
+        freqs.append([buoy, freq])
+        
         maxgap = 4 * int(freq.replace('min', ''))
         df = interpolation.interpolate_buoy_track(df,
-                                                  xvar='longitude', yvar='latitude', 
-                                                  freq=freq, maxgap_minutes=max(maxgap, 120))
-                
+                                                xvar='longitude', yvar='latitude', 
+                                                freq=freq, maxgap_minutes=max(maxgap, 120))
+        
         if metadata.loc[buoy, 'Deployment Leg'] == 5:
             df.to_csv(interploc_dn2 + buoy + '.csv')
         else:
             df.to_csv(interploc_dn1 + buoy + '.csv')
-          
+
+if len(sys.argv) == 1:
+    with open('../data/postqc_freqs.csv', 'w') as f:
+        
+        # using csv.writer method from CSV package
+        write = csv.writer(f)
+        
+        write.writerow(fields)
+        write.writerows(freqs)
