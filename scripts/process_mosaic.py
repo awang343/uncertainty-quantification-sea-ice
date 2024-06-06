@@ -7,7 +7,6 @@ import json
 import numpy as np
 import os
 import sys
-# sys.path.append('../../') # path to drifter package
 from icedrift import cleaning
 from icedrift import interpolation
 import xarray as xr
@@ -131,6 +130,10 @@ for file in files[:count]:
         else:
             df.to_csv(interploc_dn1 + buoy + '.csv')
 
+
+# You can also use pandas to do this, if there was
+# a need to lookup specific rows easily later on. This works fine
+# for this case though. 
 if len(sys.argv) == 1:
     with open('../data/postqc_freqs.csv', 'w') as f:
         
