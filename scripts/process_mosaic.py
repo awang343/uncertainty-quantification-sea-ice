@@ -47,6 +47,7 @@ def get_frequency(buoy_df):
     t = buoy_df.index.to_series()
     dt = t - t.shift(1)
     f = int(np.round(dt.median().total_seconds()/60, 0))
+
     # Check if representative of weekly data
     fmax = int(np.round(dt.resample('7D').median().max().total_seconds()/60, 0))
     fmin = int(np.round(dt.resample('7D').median().min().total_seconds()/60, 0))
@@ -64,81 +65,90 @@ def get_frequency(buoy_df):
 
     return interp_freq
 
-if len(sys.argv) == 2 and sys.argv[1].isnumeric():
-    count = int(sys.argv[1])
-else:
-    count = len(files)
+def process_files(files):
+    fields = ['sensor_id', 'freq']
+    freqs = []
+    for file in files:
+        buoy = file.split('_')[-1].replace('.csv', '')
+        df = pd.read_csv(dataloc + file, index_col='datetime', parse_dates=True)
 
-fields = ['sensor_id', 'freq']
-freqs = []
-for file in files[:count]:
-    buoy = file.split('_')[-1].replace('.csv', '')
-    df = pd.read_csv(dataloc + file, index_col='datetime', parse_dates=True)
+        # Adjust V buoys to UTC from Beijing time
+        # This is also an example of user error affecting a small set of buoys.
+        # All the other buoys are set to UTC, which is how they should be.
+        if 'V' in buoy:
+            df.index = df.index - pd.to_timedelta('8h')
 
-    # Adjust V buoys to UTC from Beijing time
-    # This is also an example of user error affecting a small set of buoys.
-    # All the other buoys are set to UTC, which is how they should be.
-    if 'V' in buoy:
-        df.index = df.index - pd.to_timedelta('8h')
-
-    # Apply correction to longitude issue for 3 V buoys
-    # This issue appears if the programmer forgets to set the data
-    # type to allow an extra character for a minus sign. So when 
-    # the data cross the Greenwich meridian, the longitude values 
-    # erroneously stayed positive
-    if file in v_fix_list:
-        time = pd.to_datetime(v_fix_list[file])
-        df_subset = df[time:]
-        df_subset.loc[:, 'longitude'] = df_subset.loc[:, 'longitude']*-1
-        df.update(df_subset)
-        if 'M5' in file.split('_'):        
-            df_subset = df['2020-07-10 07:58:06':'2020-07-10 09:58:28'].copy()
-            df_subset.longitude = df_subset.longitude*-1
+        # Apply correction to longitude issue for 3 V buoys
+        # This issue appears if the programmer forgets to set the data
+        # type to allow an extra character for a minus sign. So when 
+        # the data cross the Greenwich meridian, the longitude values 
+        # erroneously stayed positive
+        if file in v_fix_list:
+            time = pd.to_datetime(v_fix_list[file])
+            df_subset = df[time:]
+            df_subset.loc[:, 'longitude'] = df_subset.loc[:, 'longitude']*-1
             df.update(df_subset)
-
-    # The "standard_qc" function can be adjusted if needed
-    # It's in the "icedrift.cleaning" module and strings together
-    # the QC steps
-    df_qc = cleaning.standard_qc(df,
-                        min_size=100,
-                        gap_threshold='6h',                
-                        segment_length=24,
-                        lon_range=(-180, 180),
-                        lat_range=(50, 90),
-                        max_speed=1.5,
-                        speed_window='3D',
-                        verbose=False)
-
-    if df_qc is not None:
-        df = df_qc.loc[~df_qc.flag, ['latitude', 'longitude']]
+            if 'M5' in file.split('_'):        
+                df_subset = df['2020-07-10 07:58:06':'2020-07-10 09:58:28'].copy()
+                df_subset.longitude = df_subset.longitude*-1
+                df.update(df_subset)
         
-        if metadata.loc[buoy, 'Deployment Leg'] == 5:
-            df.to_csv(saveloc_dn2 + buoy + '.csv')
-        else:
-            df.to_csv(saveloc_dn1 + buoy + '.csv')
-
+        # Calculate the frequency
         freq = get_frequency(df)
         freqs.append([buoy, freq])
+
+        freq_hrs = str(int(freq.replace('min',''))//60 * 3) + 'h'
+
+        # The "standard_qc" function can be adjusted if needed
+        # It's in the "icedrift.cleaning" module and strings together
+        # the QC steps
         
-        maxgap = 4 * int(freq.replace('min', ''))
-        df = interpolation.interpolate_buoy_track(df,
-                                                xvar='longitude', yvar='latitude', 
-                                                freq=freq, maxgap_minutes=max(maxgap, 120))
+        df_qc = cleaning.standard_qc(df,
+                            min_size=100,
+                            gap_threshold=freq_hrs,                
+                            segment_length=24,
+                            lon_range=(-180, 180),
+                            lat_range=(50, 90),
+                            max_speed=1.5,
+                            speed_window='3D',
+                            verbose=False)
         
-        if metadata.loc[buoy, 'Deployment Leg'] == 5:
-            df.to_csv(interploc_dn2 + buoy + '.csv')
-        else:
-            df.to_csv(interploc_dn1 + buoy + '.csv')
+        if df_qc is not None:
+            df = df_qc.loc[~df_qc.flag, ['latitude', 'longitude']]
+            
+            if metadata.loc[buoy, 'Deployment Leg'] == 5:
+                df.to_csv(saveloc_dn2 + buoy + '.csv')
+            else:
+                df.to_csv(saveloc_dn1 + buoy + '.csv')
+            
+            maxgap = 4 * int(freq.replace('min', ''))
+            df = interpolation.interpolate_buoy_track(df,
+                                                    xvar='longitude', yvar='latitude', 
+                                                    freq=freq, maxgap_minutes=max(maxgap, 120))
+            
+            if metadata.loc[buoy, 'Deployment Leg'] == 5:
+                df.to_csv(interploc_dn2 + buoy + '.csv')
+            else:
+                df.to_csv(interploc_dn1 + buoy + '.csv')
 
 
-# You can also use pandas to do this, if there was
-# a need to lookup specific rows easily later on. This works fine
-# for this case though. 
-if len(sys.argv) == 1:
-    with open('../data/postqc_freqs.csv', 'w') as f:
-        
-        # using csv.writer method from CSV package
-        write = csv.writer(f)
-        
-        write.writerow(fields)
-        write.writerows(freqs)
+    # You can also use pandas to do this, if there was
+    # a need to lookup specific rows easily later on. This works fine
+    # for this case though. 
+    if len(sys.argv) == 1:
+        with open('../data/postqc_freqs.csv', 'w') as f:
+            
+            # using csv.writer method from CSV package
+            write = csv.writer(f)
+            
+            write.writerow(fields)
+            write.writerows(freqs)
+
+sensor_ids = [f.split(".")[0].split("_")[2] for f in files]
+if len(sys.argv) == 2:
+    if sys.argv[1].isnumeric():
+        process_files(files[:int(sys.argv[1])])
+    elif sys.argv[1] in sensor_ids:
+        process_files([files[sensor_ids.index(sys.argv[1])]])
+elif len(sys.argv) == 1:
+    process_files(files)
