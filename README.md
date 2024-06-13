@@ -24,7 +24,7 @@ The frequencies of the buoys were assigned by taking the median of time differen
 | 720min  | 2 |
 | Total | 216 |
 
-Steps taken for QC
+### Steps taken for QC
 Choosing representative buoys - metadata files tell you which sites have multiple. Preference to use the “T” buoys because there’s extra data from those that we’ll need to study ice floe rotation.
 Gap filling - try out some things for using nearby buoys. You can test a method by pretending data is missing by masking it, estimating the masked data, and looking at the error. 
 
