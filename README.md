@@ -28,7 +28,7 @@ Quality control was performed using the functions found in scripts/icedrift/clea
 Interpolation was done to regrid the buoys to the more standard calculated buoy frequencies above.
 
 
-## To Explore
+## Explore Further
 Choosing representative buoys - metadata files tell you which sites have multiple. Preference to use the “T” buoys because there’s extra data from those that we’ll need to study ice floe rotation.
 Gap filling - try out some things for using nearby buoys. You can test a method by pretending data is missing by masking it, estimating the masked data, and looking at the error. 
 
