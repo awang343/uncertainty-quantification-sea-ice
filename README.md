@@ -22,19 +22,21 @@ The frequencies of the buoys were assigned by taking the median of time differen
 | Total | 216 |
 
 ### Steps taken for QC
-Quality control was performed using the functions found in scripts/icedrift/cleaning.py. This removed 4 buoys that had insufficient data.
+Quality control was performed using the functions found in scripts/icedrift/cleaning.py. The cleaning algorithm is as follows:
+
+1. Remove duplicated and fix reversed dates
+2. Remove duplicated positions (where both longitude and latitude stayed the same between two observations)
+3. Segment the observations into groups that have gaps larger than the threshold. Then, remove segments that are too short.
+4. Check for anomalous speeds between consecutive buoy positions
 
 ### Steps taken for Interpolation
 Interpolation was done to regrid the buoys to the more standard calculated buoy frequencies above.
-
 
 ## Explore Further
 Choosing representative buoys - metadata files tell you which sites have multiple. Preference to use the “T” buoys because there’s extra data from those that we’ll need to study ice floe rotation.
 Gap filling - try out some things for using nearby buoys. You can test a method by pretending data is missing by masking it, estimating the masked data, and looking at the error. 
 
-### 
 Surface meteorological data was obtained from the ECMWF ERA5 reanalysis via the Copernicus Climate Data Store (CDS). The script `prepare_era_data.py` uses the `cdsapi` library to download hourly ERA5 data on a 0.25 degree latitude-longitude grid, then uses `xesmf` to regrid the data to a regular 25-km north polar stereographic grid (NSIDC North Polar Stereographic, EPSG code 3413).
-
 
 TBD: The regrid step in `prepare_era_data` needs to be adjusted so that a single netCDF file is created rather than a separate file for each month and for each variable.
 
