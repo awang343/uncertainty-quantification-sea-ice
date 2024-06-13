@@ -7,9 +7,6 @@ mamba create -f env.yml
 ```
 
 ## Data
-TBD: Description of the MOSAiC buoy dataset
-Number of buoys, range of lengths, frequencies
-
 The buoy dataset used in this project comes from a network of autonomous, ice-tethered buoys deployed during the MOSAiC experiment. The dataset consists of 216 buoys of various types covering the period from 26 September 2019 to 23 May 2021. The lengths of buoy data range from just 4 observations to 52998 observations. The median length is 5698.
 
 The frequencies of the buoys were assigned by taking the median of time differences between observations. If the median was below 30 or in between 30 and 65, 30 min or 60 min were assigned to frequency respectively. Otherwise, the frequency was assigned to the median rounded to the nearest 10 minutes. The following frequencies were observed:
