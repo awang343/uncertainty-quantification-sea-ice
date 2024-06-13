@@ -21,7 +21,8 @@ The frequencies of the buoys were assigned by taking the median of time differen
 | 120min  |  24 |
 | 180min  | 7 |
 | 240min  | 4 |
-| 720min  | 2  |
+| 720min  | 2 |
+| Total | 216 |
 
 Steps taken for QC
 Choosing representative buoys - metadata files tell you which sites have multiple. Preference to use the “T” buoys because there’s extra data from those that we’ll need to study ice floe rotation.
