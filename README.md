@@ -30,7 +30,7 @@ Quality control was performed using the functions found in scripts/icedrift/clea
 4. Check for anomalous speeds between consecutive buoy positions
 
 ### Steps taken for Interpolation
-Interpolation was done to regrid the buoys to the more standard calculated buoy frequencies above.
+Interpolation was done to regrid the buoys to the more standard calculated buoy frequencies above. This was done separately on each segment identified previously. The algorithm used for interpolation is interp1d with cubic splines from the scipy package.
 
 ## Explore Further
 Choosing representative buoys - metadata files tell you which sites have multiple. Preference to use the “T” buoys because there’s extra data from those that we’ll need to study ice floe rotation.
