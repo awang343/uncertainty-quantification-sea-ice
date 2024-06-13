@@ -144,6 +144,7 @@ def process_files(files):
             write.writerow(fields)
             write.writerows(freqs)
 
+
 sensor_ids = [f.split(".")[0].split("_")[2] for f in files]
 if len(sys.argv) == 2:
     if sys.argv[1].isnumeric():
