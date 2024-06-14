@@ -41,43 +41,6 @@ def buoy_data(buoy, version="interp"):
         data["datetime"] = pd.to_datetime(data['datetime'])
         return data
 
-def graph_data(buoy, include=["original", "qc", "interp"], showcleaned=False):
-    """
-    Graphs the data for a given buoy sensor id and returns the graph objects
-
-    include: Choose which steps in the data processing to graph
-    showcleaned: If True, mark the data removed by quality control with scatter points
-    """
-    fig = pplt.figure(refwidth=6, refheight=2, share=False)
-    axs = fig.subplots(nrows=len(include), ncols=2)
-
-    all_data = {version: buoy_data(buoy, version) for version in SUPPORTED_VERSIONS}
-
-    for i, name in enumerate(include):
-        axs[2*i].plot(all_data[name]["datetime"], all_data[name]["latitude"], marker='.', ms=1, lw=0) # this way it's easy to see where gaps are
-        axs[2*i].format(xlocator='month',
-                        xformatter='%b %d',
-                        title=f"{name}: Latitude of {buoy}, Length: {len(all_data[name])}", xlabel="", ylabel="latitude")
-
-        axs[2*i+1].plot(all_data[name]['datetime'], all_data[name]["longitude"], marker='.', ms=1, lw=0)
-        axs[2*i+1].format(xlocator='month',
-                          xformatter='%b %d',
-                          title=f"{name}: Longitude of {buoy}, Length: {len(all_data[name])}",
-                          xlabel="", # Since the x ticks are dates, we don't need the extra text
-                          ylabel="longitude")
-
-        if showcleaned:
-            merged = all_data['original'].merge(all_data['qc'], on='datetime', how='left', indicator=True)
-            flagged = merged[merged['_merge'] == 'left_only']
-            
-            axs[2*i].scatter(flagged['datetime'], flagged["latitude_x"], s=0.2)
-            axs[2*i].format(xlocator='month', xformatter='%b %d', xlabel="")
-
-            axs[2*i+1].scatter(flagged['datetime'], flagged["longitude_x"], s=0.2)
-            axs[2*i+1].format(xlocator='month', xformatter='%b %d', xlabel="")
-        fig.format(xrotation=45)
-    return fig, axs
-
 
 def station_data(station):
     """
