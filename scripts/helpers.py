@@ -4,14 +4,11 @@ import proplot as pplt
 
 SUPPORTED_VERSIONS = ["interp", "qc", "original"]
 
-def get_metadata():
-    metadata = pd.read_csv('../data/adc_dn_tracks/DN_buoy_list_v2.csv')
-    freq_lookup = pd.read_csv('../data/postqc_freqs.csv')
+def buoy_metadata():
+    return pd.read_csv("../data/metadata/buoy_metadata.csv", index_col=0)
 
-    metadata = pd.merge(metadata, freq_lookup, left_on='Sensor ID', right_on='sensor_id', how="outer")
-    metadata = metadata.drop(columns='sensor_id').rename(columns={'freq':'Calculated Frequency'}).set_index("Sensor ID")
-
-    return metadata
+def station_metadata():
+    return pd.read_csv("../data/metadata/station_metadata.csv", index_col=0)
 
 def usable_buoy(buoy):
     return buoy+'.csv' in os.listdir('../data/interp_buoys/mosaic_dn2') + os.listdir('../data/interp_buoys/mosaic_dn1')
@@ -27,7 +24,7 @@ def buoy_data(buoy, version="interp"):
     if version not in SUPPORTED_VERSIONS:
         raise("Version not supported")
     
-    buoy_meta = get_metadata().loc[buoy]
+    buoy_meta = buoy_metadata().loc[buoy]
 
     if version == "original":
         original_file = buoy_meta['DN Station ID'] + '_' + buoy_meta['IMEI'] + '_' + buoy
@@ -54,7 +51,7 @@ def graph_data(buoy, include=["original", "qc", "interp"], showcleaned=False):
     fig = pplt.figure(refwidth=6, refheight=2, share=False)
     axs = fig.subplots(nrows=len(include), ncols=2)
 
-    all_data = {key: buoy_data(buoy, key) for key in SUPPORTED_VERSIONS}
+    all_data = {version: buoy_data(buoy, version) for version in SUPPORTED_VERSIONS}
 
     for i, name in enumerate(include):
         axs[2*i].plot(all_data[name]["datetime"], all_data[name]["latitude"], marker='.', ms=1, lw=0) # this way it's easy to see where gaps are
@@ -80,3 +77,21 @@ def graph_data(buoy, include=["original", "qc", "interp"], showcleaned=False):
             axs[2*i+1].format(xlocator='month', xformatter='%b %d', xlabel="")
         fig.format(xrotation=45)
     return fig, axs
+
+
+def station_data(station):
+    """
+    station: The station ID
+
+    This function gets the representative interpolated daily data for buoys starting at a given station
+    """
+    
+    meta = station_metadata().loc[station]
+
+    dn = '2' if meta.loc['Deployment Leg'] == 5 else '1'
+    
+    saveloc = f"../data/daily_stations/mosaic_dn{dn}/{station}.csv"
+    data = pd.read_csv(saveloc)
+
+    data["datetime"] = pd.to_datetime(data['datetime'])
+    return data
