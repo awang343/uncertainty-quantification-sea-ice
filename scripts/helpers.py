@@ -11,7 +11,8 @@ def station_metadata():
     return pd.read_csv("../data/metadata/station_metadata.csv", index_col=0)
 
 def usable_buoy(buoy):
-    return buoy+'.csv' in os.listdir('../data/interp_buoys/mosaic_dn2') + os.listdir('../data/interp_buoys/mosaic_dn1')
+    exclude_buoys = ["2019P101"]
+    return buoy not in exclude_buoys and buoy+'.csv' in os.listdir('../data/interp_buoys/mosaic_dn2') + os.listdir('../data/interp_buoys/mosaic_dn1')
 
 def buoy_data(buoy, version="interp"):
     """
