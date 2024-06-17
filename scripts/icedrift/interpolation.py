@@ -6,6 +6,7 @@ import pandas as pd
 import pyproj
 import numpy as np 
 from scipy.interpolate import interp1d
+import xarray as xr
 
 def regrid_buoy_track(buoy_df, precision='5min'):
     """Applies interp1d with cubic splines to align the buoy track to a 5 min grid.
@@ -168,7 +169,8 @@ def sic_along_track(position_data, sic_data):
     """Uses the xarray advanced interpolation to get along-track sic
     via nearest neighbors. Nearest neighbors is preferred because numerical
     flags are used for coasts and open ocean, so interpolation is less meaningful."""
-    # Sea ice concentration uses NSIDC NP Stereographic
+    
+    # Sea ice concentration uses NSIDC NP Stereographic v1
     crs0 = pyproj.CRS('WGS84')
     crs1 = pyproj.CRS('epsg:3411')
     transformer_stere = pyproj.Transformer.from_crs(crs0, crs_to=crs1, always_xy=True)
@@ -186,6 +188,8 @@ def sic_along_track(position_data, sic_data):
              'y': y}, method='nearest').data
         
         sic.loc[group.index] = np.round(SIC.T, 3)
-    sic[sic > 100] = np.nan
+    
+    sic = pd.DataFrame({'sic_code': sic, 'sic': sic})
+    sic.loc[sic['sic_code'] > 100, 'sic'] = np.nan
     return sic   
 
