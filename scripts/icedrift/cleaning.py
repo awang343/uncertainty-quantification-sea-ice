@@ -133,7 +133,7 @@ def check_speed(buoy_df, date_index=True, window='3day', sigma=5, max_speed=1.5)
     if n_min > 0:
         n_min = int(n_min)
     else:
-        print('n_min is', n_min, ', setting it to 10.')
+        # print('n_min is', n_min, ', setting it to 10.')
         n_min = 10
         
     def zscore(df, window, n_min):
@@ -231,9 +231,10 @@ def standard_qc(buoy_df,
     
     # Return None if there's insufficient data
     if len(buoy_df) < min_size:
-        print('Observations in bounding box', n, 'less than min size', min_size)
+        if verbose:
+            print('Observations in bounding box', n, 'less than min size', min_size)
         return None
-
+    
     flag_gaps = check_gaps(buoy_df,
                            threshold_gap=gap_threshold,
                            threshold_segment=segment_length)
@@ -246,7 +247,6 @@ def standard_qc(buoy_df,
 
     if len(buoy_df) < min_size:
         return None
-    
     else:
         buoy_df_init['flag'] = True
         buoy_df_init.loc[buoy_df.index, 'flag'] = False

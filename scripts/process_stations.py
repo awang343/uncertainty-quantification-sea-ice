@@ -32,9 +32,12 @@ for dir in ["../data/daily_stations/mosaic_dn1",
 best_buoys = []
 for station in grouped_stations:
     station_buoy = best_from_station(station[1])
+
+    # Downsampling to noon and midnight (mn) at daily frequency
     downsample_data = buoy_data(station_buoy).set_index("datetime").resample("1d", offset="12h").asfreq().dropna()
     downsample_data_mn = buoy_data(station_buoy).set_index("datetime").resample("1d").asfreq().dropna()
     
+    # Save data to new folder
     dn = 2 if buoy_metadata().loc[station_buoy, "Deployment Leg"] == 5 else 1
     downsample_data.to_csv(f"../data/daily_stations/mosaic_dn{dn}/{station[0]}.csv")
     best_buoys.append([station[0], station_buoy, buoy_meta.loc[station_buoy, "Deployment Leg"]])

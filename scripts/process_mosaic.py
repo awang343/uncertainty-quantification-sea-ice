@@ -12,6 +12,7 @@ from icedrift import interpolation
 import xarray as xr
 import pyproj
 
+
 def get_frequency(buoy_df):
     """Calculates the median frequency and returns as
     an integer number of minutes. Prints warning if the
@@ -46,6 +47,13 @@ files = os.listdir(dataloc)
 files = [f for f in files if f[0] not in ['.', 'S', 'D']]
 files = [f for f in files if 'summary' not in f]
 
+for dir in ["../data/qc_buoys/mosaic_dn1",
+                    "../data/qc_buoys/mosaic_dn1",
+                    "../data/interp_buoys/mosaic_dn1",
+                    "../data/interp_buoys/mosaic_dn1"]:
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+
 ## List of V buoys with missing (-) in longitudes after crossing meridian
 # Thanks Angela for finding these! Should be updated in the ADC drift set v3.
 v_fix_list = {'M2_300234067064490_2019V2.csv': '2020-07-26 17:58:08',
@@ -53,8 +61,11 @@ v_fix_list = {'M2_300234067064490_2019V2.csv': '2020-07-26 17:58:08',
               'M5_300234067066520_2019V4.csv': '2020-07-10 00:58:09'}
 
 metadata = pd.read_csv(f'{dataloc}/DN_buoy_list_v2.csv').set_index("Sensor ID")
+
 freqs = []
-for file in files:
+interp = []
+lengths = []
+for progress, file in enumerate(files):
     buoy = file.split('_')[-1].replace('.csv', '')
     df = pd.read_csv(dataloc + file, index_col='datetime', parse_dates=True)
 
@@ -99,15 +110,11 @@ for file in files:
                         speed_window='3D',
                         verbose=False)
     
-    if df_qc is not None:
-        df = df_qc.loc[~df_qc.flag, ['latitude', 'longitude']]
+    interpolatable = df_qc is not None
 
-        for dir in ["../data/qc_buoys/mosaic_dn1",
-                    "../data/qc_buoys/mosaic_dn1",
-                    "../data/interp_buoys/mosaic_dn1",
-                    "../data/interp_buoys/mosaic_dn1"]:
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+    interp.append([buoy, interpolatable])
+    if interpolatable:
+        df = df_qc.loc[~df_qc.flag, ['latitude', 'longitude']]
         
         dn = 2 if metadata.loc[buoy, 'Deployment Leg'] == 5 else 1
         df.to_csv(f"../data/qc_buoys/mosaic_dn{dn}/{buoy}.csv")
@@ -120,9 +127,21 @@ for file in files:
                                                 freq=freq, maxgap_minutes=max(maxgap, 120))
         
         df.to_csv(f"../data/interp_buoys/mosaic_dn{dn}/{buoy}.csv")
+    
 
-freq_lookup = pd.DataFrame(freqs, columns=['sensor_id', 'freq'])
-metadata = pd.merge(metadata.reset_index(), freq_lookup, left_on='Sensor ID', right_on='sensor_id', how="outer")
-metadata = metadata.drop(columns='sensor_id').rename(columns={'freq':'Calculated Frequency'}).set_index("Sensor ID")
+    sys.stdout.write('\r')
+    # the exact output you're looking for:
+    count = (progress + 1) / len(files)
+    sys.stdout.write("[%-20s] %d%%" % ('='*int(20*count), int(100/len(files)*progress + 1)))
+    sys.stdout.flush()
+
+freq_lookup = pd.DataFrame(freqs, columns=['Sensor ID', 'Calculated Frequency'])
+interp_lookup = pd.DataFrame(interp, columns=['Sensor ID', 'Interp'])
+
+metadata = metadata.reset_index()
+metadata = pd.merge(metadata, freq_lookup, on="Sensor ID", how="outer")
+metadata = pd.merge(metadata, interp_lookup, on='Sensor ID', how="outer")
+
+metadata = metadata.set_index("Sensor ID")
 
 metadata.to_csv("../data/metadata/buoy_metadata.csv")
