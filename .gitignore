@@ -1,7 +1,9 @@
 ##############
 # My Ignores #
 ##############
-
+data/
+.gitignore
+.vscode
 
 ##########################
 # Default Python Ignores #
