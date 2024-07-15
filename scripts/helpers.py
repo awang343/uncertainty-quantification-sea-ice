@@ -4,15 +4,18 @@ import proplot as pplt
 
 SUPPORTED_VERSIONS = ["interp", "qc", "original"]
 
-def buoy_metadata():
-    return pd.read_csv("../data/metadata/buoy_metadata.csv", index_col=0)
+def buoy_metadata(buoy=None):
+    all = pd.read_csv("../data/metadata/buoy_metadata.csv", index_col=0)
+    if buoy:
+        return all.loc[buoy]
+    else:
+        return all
 
 def station_metadata():
     return pd.read_csv("../data/metadata/station_metadata.csv", index_col=0)
 
-def usable_buoy(buoy):
-    exclude_buoys = ["2019P101"]
-    return buoy not in exclude_buoys and buoy+'.csv' in os.listdir('../data/interp_buoys/mosaic_dn2') + os.listdir('../data/interp_buoys/mosaic_dn1')
+def simba_metadata():
+    return pd.read_csv("../data/metadata/simba_metadata.csv", index_col='ID (Meereisportal name)')
 
 def buoy_data(buoy, version="interp"):
     """
@@ -59,3 +62,16 @@ def station_data(station):
 
     data["datetime"] = pd.to_datetime(data['datetime'])
     return data
+
+def simba_data(buoy):
+    saveloc = f"../data/simba_data/clean/{buoy}.csv"
+    return pd.read_csv(saveloc, index_col=0)
+
+def plot_path(buoys):
+    fig, axs = pplt.subplots(ncols=1, refwidth=7, proj=('npstere'))
+    fig.format(suptitle='Buoy Paths')
+    axs.format(land=True)
+
+    axs[0].format(boundinglat=60)
+    for b in buoys:
+        axs[0].plot(buoy_data(b)['longitude'], buoy_data(b)['latitude'], color="red")
