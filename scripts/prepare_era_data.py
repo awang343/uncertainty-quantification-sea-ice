@@ -9,8 +9,8 @@ from urllib.request import urlopen
 import xesmf as xe
 
 # Settings
-start_dates = [m.strftime('%Y-%m-%d') for m in pd.date_range('2019-10-01', '2020-10-01', freq='1MS')]
-end_dates = [m.strftime('%Y-%m-%d') for m in pd.date_range('2019-10-01', '2020-10-01', freq='1ME')]
+start_dates = [m.strftime('%Y-%m-%d') for m in pd.date_range('2020-05-01', '2020-10-01', freq='1MS')]
+end_dates = [m.strftime('%Y-%m-%d') for m in pd.date_range('2020-05-01', '2020-10-01', freq='1ME')]
 savename = 'era5_mosaic_period'
 
 saveloc = '../data/era5/'
