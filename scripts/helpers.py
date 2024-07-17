@@ -4,6 +4,9 @@ import proplot as pplt
 
 SUPPORTED_VERSIONS = ["interp", "qc", "original"]
 
+def print(*val):
+    display(*val)
+
 def buoy_metadata(buoy=None):
     all = pd.read_csv("../data/metadata/buoy_metadata.csv", index_col=0)
     if buoy:
@@ -65,7 +68,11 @@ def station_data(station):
 
 def simba_data(buoy):
     saveloc = f"../data/simba_data/clean/{buoy}.csv"
-    return pd.read_csv(saveloc, index_col=0)
+    return pd.read_csv(saveloc, index_col=0, parse_dates=True)
+
+def era5_data(buoy):
+    saveloc = f"../data/interp_buoys_era5/mosaic_dn1/{buoy}_era5.csv"
+    return pd.read_csv(saveloc)
 
 def plot_path(buoys):
     fig, axs = pplt.subplots(ncols=1, refwidth=7, proj=('npstere'))
