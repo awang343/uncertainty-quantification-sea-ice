@@ -47,3 +47,8 @@ TBD: The regrid step in `prepare_era_data` needs to be adjusted so that a single
 * Download the MASIE 1 km imagery for the periods where the buoys are getting close to ice edge to verify buoy end dates
 * Set up script to automatically check whether a buoy was in the 
 * Find subset of buoys where compass data is available -- perhaps on Pangaea for the SIMBA buoys?
+
+
+
+
+
