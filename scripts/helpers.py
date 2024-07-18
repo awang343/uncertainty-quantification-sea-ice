@@ -71,8 +71,15 @@ def simba_data(buoy):
     return pd.read_csv(saveloc, index_col=0, parse_dates=True)
 
 def era5_data(buoy):
-    saveloc = f"../data/interp_buoys_era5/mosaic_dn1/{buoy}_era5.csv"
-    return pd.read_csv(saveloc)
+    meta = buoy_metadata().loc[buoy]
+
+    dn = '2' if meta.loc['Deployment Leg'] == 5 else '1'
+    
+    saveloc = f"../data/interp_buoys_era5/mosaic_dn{dn}/{buoy}_era5.csv"
+    data = pd.read_csv(saveloc)
+
+    data["datetime"] = pd.to_datetime(data['datetime'])
+    return data
 
 def plot_path(buoys):
     fig, axs = pplt.subplots(ncols=1, refwidth=7, proj=('npstere'))
