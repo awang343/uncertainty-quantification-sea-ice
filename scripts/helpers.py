@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import proplot as pplt
+import xarray as xr
 
 SUPPORTED_VERSIONS = ["interp", "qc", "original"]
 
@@ -80,6 +81,14 @@ def era5_data(buoy):
 
     data["datetime"] = pd.to_datetime(data['datetime'])
     return data
+
+def sic_cutoff_data(buoy):
+    data = buoy_data(buoy)
+    
+    sic_cutoff = pd.read_csv("../data/metadata/sic_cutoffs.csv")
+    sic_cutoff.index = sic_cutoff["buoy_id"]
+    
+    return data[pd.to_datetime(data["datetime"]) > sic_cutoff.loc[buoy]]
 
 def plot_path(buoys):
     fig, axs = pplt.subplots(ncols=1, refwidth=7, proj=('npstere'))
