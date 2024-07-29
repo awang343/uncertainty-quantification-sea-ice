@@ -50,7 +50,7 @@ files = [f for f in files if 'summary' not in f]
 for dir in ["../data/qc_buoys/mosaic_dn1",
                     "../data/qc_buoys/mosaic_dn1",
                     "../data/interp_buoys/mosaic_dn1",
-                    "../data/interp_buoys/mosaic_dn1"]:
+                    "../data/interp_buoys/mosaic_dn2"]:
             if not os.path.exists(dir):
                 os.makedirs(dir)
 
@@ -65,6 +65,7 @@ metadata = pd.read_csv(f'{dataloc}/DN_buoy_list_v2.csv').set_index("Sensor ID")
 freqs = []
 interp = []
 lengths = []
+
 for progress, file in enumerate(files):
     buoy = file.split('_')[-1].replace('.csv', '')
     df = pd.read_csv(dataloc + file, index_col='datetime', parse_dates=True)
@@ -94,7 +95,7 @@ for progress, file in enumerate(files):
     freq = get_frequency(df)
     freqs.append([buoy, freq])
 
-    freq_hrs = str(int(freq.replace('min',''))//60 * 3) + 'h'
+    freq_hrs = str(int(freq.replace('min','')) * 3) + 'min'
 
     # The "standard_qc" function can be adjusted if needed
     # It's in the "icedrift.cleaning" module and strings together

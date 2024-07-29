@@ -2,11 +2,11 @@ import pandas as pd
 from helpers import *
 
 def best_from_station(station_df):
-    tbuoys = station_df[station_df["Buoy Type"] == "Thermistor"]
-    if len(tbuoys) > 0:
-        return tbuoys.idxmax().loc["length"]
-    else:
-        return station_df.idxmax().loc["length"]
+    #tbuoys = station_df[station_df["Buoy Type"] == "Thermistor"]
+    #if len(tbuoys) > 0:
+    #    return tbuoys.idxmax().loc["length"]
+    #else:
+    return station_df.idxmax().loc["length"]
 
 for dir in ["../data/daily_stations",
             "../data/daily_stations/mosaic_dn1",

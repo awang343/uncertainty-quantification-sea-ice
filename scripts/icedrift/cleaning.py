@@ -91,6 +91,7 @@ def check_gaps(data, threshold_gap='4h', threshold_segment=12, date_col=None):
     
     # apply_filter
     new = data.groupby(segment).filter(lambda x: len(x) > threshold_segment).index
+    
     flag = pd.Series(True, index=data.index)
     flag.loc[new] = False
     return flag
@@ -209,6 +210,7 @@ def standard_qc(buoy_df,
     if verbose:
         if len(buoy_df) < n:
             print('Initial size', n, 'reduced to', len(buoy_df))
+    
 
     def bbox_select(df):
         """Restricts the dataframe to data within
@@ -224,6 +226,7 @@ def standard_qc(buoy_df,
         return df.loc[(df.index >= idx[0]) & (df.index <= idx[-1])].copy()
         
     buoy_df = bbox_select(buoy_df)
+    
 
     if verbose:
         if len(buoy_df) < n:
@@ -244,6 +247,8 @@ def standard_qc(buoy_df,
     # Check speed
     flag_speed = check_speed(buoy_df, window=speed_window, max_speed=max_speed, sigma=speed_sigma)
     buoy_df = buoy_df.loc[~flag_speed].copy()
+
+    
 
     if len(buoy_df) < min_size:
         return None

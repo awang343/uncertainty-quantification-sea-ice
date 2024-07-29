@@ -1,0 +1,46 @@
+% vim: filetype=tex
+
+\documentclass[12pt]{article}
+\usepackage[usenames]{color}
+\usepackage{amsmath,amsfonts,amstext,amssymb,amsbsy,amsopn,amsthm,eucal}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\def\theequation{\arabic{section}.\arabic{equation}}
+\def\thetheorem{\arabic{theorem}}
+\def\theass{\arabic{ass}}
+\def\thecond{\arabic{condo}}
+
+\newcommand{\eqns}[1]{\begin{eqnarray*}#1\end{eqnarray*}}
+\newcommand{\bmat}[1]{
+    \begin{bmatrix}#1
+    \end{bmatrix}
+}
+\newcommand{\vmat}[1]{
+    \begin{vmatrix}#1
+    \end{vmatrix}
+}
+\newcommand{\calL}{\mathcal{L}}
+\newenvironment{solution}{\begin{trivlist}\item[]{\bf Solution:}}{\qed \end{trivlist}}
+
+
+\begin{document}
+
+\begin{center}
+{\bf Math Equations} 
+\end{center}
+\vspace{0.2cm}
+
+\begin{enumerate}
+    \item $U_{ice} = \alpha e^{i\theta}U_{wind} + \epsilon$
+
+    \begin{align}
+        U_{ice}, U_{wind} &: \text{Complex ice/wind velocities} \\
+        \alpha &: \text{Drift speed ratio}\\
+        \theta &: \text{Turning angle} \\
+        \epsilon &: \text{Error}
+    \end{align}
+
+\end{enumerate}
+
+\end{document}
