@@ -1,7 +1,10 @@
 ##############
 # My Ignores #
 ##############
-data/
+meander_investigation/data/
+
+uncertainty_quantification/data/
+
 .gitignore
 .vscode
 
